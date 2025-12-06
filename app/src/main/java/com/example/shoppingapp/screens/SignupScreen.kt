@@ -31,10 +31,17 @@ import androidx.compose.ui.unit.sp
 import com.example.shoppingapp.R
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.shoppingapp.AppUtil
+import com.example.shoppingapp.viewmodel.AuthViewModel
 
 @Composable
-fun SignupScreen(modifier: Modifier = Modifier) {
+fun SignupScreen(
+    modifier: Modifier = Modifier,
+    authViewModel: AuthViewModel = viewModel()
+) {
     var email by remember {
         mutableStateOf("")
     }
@@ -50,6 +57,8 @@ fun SignupScreen(modifier: Modifier = Modifier) {
     var passwordVisible by remember {
         mutableStateOf(false)
     }
+
+    var context = LocalContext.current
 
     Column(
         modifier = modifier.fillMaxSize()
@@ -135,7 +144,13 @@ fun SignupScreen(modifier: Modifier = Modifier) {
         Spacer(modifier = Modifier.height(20.dp))
 
         Button(onClick = {
-
+            authViewModel.signup(email, name, password) {success, errorMessage ->
+                if (success) {
+                    // TODO: Add navigation on successful signup
+                } else {
+                    AppUtil.showToast(context, errorMessage?:"Something went wrong")
+                }
+            }
         },
             modifier = Modifier.fillMaxWidth()
                 .height(60.dp)
