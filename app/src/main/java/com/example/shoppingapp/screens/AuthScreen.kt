@@ -33,8 +33,8 @@ fun AuthScreen(modifier: Modifier = Modifier, navController: NavHostController) 
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Image(
-            painter = painterResource(id = R.drawable.authentication_banner),
-            contentDescription = "Authentication Banner",
+            painter = painterResource(id = R.drawable.shopping_banner),
+            contentDescription = "Shopping Banner",
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(20.dp))
