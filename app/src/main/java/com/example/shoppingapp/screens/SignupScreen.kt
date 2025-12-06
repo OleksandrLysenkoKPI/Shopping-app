@@ -34,12 +34,14 @@ import androidx.compose.material3.IconButton
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.example.shoppingapp.AppUtil
 import com.example.shoppingapp.viewmodel.AuthViewModel
 
 @Composable
 fun SignupScreen(
     modifier: Modifier = Modifier,
+    navController: NavController,
     authViewModel: AuthViewModel = viewModel()
 ) {
     var email by remember {
@@ -55,6 +57,10 @@ fun SignupScreen(
     }
 
     var passwordVisible by remember {
+        mutableStateOf(false)
+    }
+
+    var isLoading by remember {
         mutableStateOf(false)
     }
 
@@ -144,18 +150,24 @@ fun SignupScreen(
         Spacer(modifier = Modifier.height(20.dp))
 
         Button(onClick = {
+            isLoading = true
             authViewModel.signup(email, name, password) {success, errorMessage ->
                 if (success) {
-                    // TODO: Add navigation on successful signup
+                    isLoading = false
+                    navController.navigate("home"){
+                        popUpTo("auth") {inclusive = true}
+                    }
                 } else {
+                    isLoading = false
                     AppUtil.showToast(context, errorMessage?:"Something went wrong")
                 }
             }
         },
+            enabled = !isLoading,
             modifier = Modifier.fillMaxWidth()
                 .height(60.dp)
         ) {
-            Text(text = "Signup", fontSize = 22.sp)
+            Text(text = if(isLoading) "Creating account" else "Signup", fontSize = 22.sp)
         }
     }
 }
