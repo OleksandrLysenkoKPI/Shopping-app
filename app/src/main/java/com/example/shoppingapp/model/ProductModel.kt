@@ -1,6 +1,6 @@
 package com.example.shoppingapp.model
 
-// Fields = fields in Firestore Database
+// Number of fields here = number of fields in Firestore Database
 data class ProductModel(
     val id: String = "",
     val title: String = "",
