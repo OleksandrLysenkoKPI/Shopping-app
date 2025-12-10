@@ -3,9 +3,12 @@ package com.example.shoppingapp.pages
 import android.R.attr.fontWeight
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -17,6 +20,8 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.shoppingapp.AppUtil
+import com.example.shoppingapp.GlobalNavigation
 import com.example.shoppingapp.components.CartItemView
 import com.example.shoppingapp.model.UserModel
 import com.google.firebase.Firebase
@@ -62,7 +67,10 @@ fun CartPage(modifier: Modifier = Modifier) {
 
         LazyColumn(modifier = Modifier.weight(1f)) {
             if (userModel.value.cartItems.isNotEmpty()) {
-                items(userModel.value.cartItems.toList(), key = { it.first}){ (productId, qty) ->
+                items(
+                    userModel.value.cartItems.toList().sortedBy { it.first },
+                    key = { it.first }
+                ) { (productId, qty) ->
                     CartItemView(productId = productId, qty = qty)
                 }
             } else {
@@ -78,5 +86,19 @@ fun CartPage(modifier: Modifier = Modifier) {
             }
         }
 
+        if (userModel.value.cartItems.isNotEmpty()) {
+            Button(onClick = {
+                GlobalNavigation.navController.navigate("checkout")
+            },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+            ) {
+                Text(
+                    text = "Checkout",
+                    fontSize = 16.sp
+                )
+            }
+        }
     }
 }
