@@ -1,6 +1,7 @@
 package com.example.shoppingapp.pages
 
 import android.R.attr.fontWeight
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,6 +16,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -75,13 +77,23 @@ fun CartPage(modifier: Modifier = Modifier) {
                 }
             } else {
                 item {
-                    Text(
-                        text = "Your cart is empty",
-                        style = TextStyle(
-                            fontWeight = FontWeight.SemiBold
-                        ),
-                        modifier = Modifier.padding(top = 16.dp)
-                    )
+                    Box(
+                        modifier = Modifier.fillParentMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "Your cart is empty",
+                                style = TextStyle(
+                                    fontSize = 24.sp,
+                                    fontWeight = FontWeight.Normal
+                                ),
+                                modifier = Modifier.padding(top = 16.dp)
+                            )
+                        }
+                    }
                 }
             }
         }

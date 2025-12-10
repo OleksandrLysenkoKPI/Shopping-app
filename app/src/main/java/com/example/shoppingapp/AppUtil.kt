@@ -1,11 +1,17 @@
 package com.example.shoppingapp
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.widget.Toast
+import androidx.compose.ui.text.toUpperCase
+import com.example.shoppingapp.model.OrderModel
 import com.google.firebase.Firebase
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.firestore
+import java.util.UUID
 
 object AppUtil {
 
@@ -68,11 +74,66 @@ object AppUtil {
         }
     }
 
-    fun getDiscountPercentage(): Float {
-        return 10.0f
+    fun clearCartAndAddToOrders(
+        context: Context,
+        onSuccess: () -> Unit, // Callback для успіху
+        onFailure: (String) -> Unit // Callback для помилки
+    ) {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid
+        if (userId == null) {
+            onFailure("User not logged in")
+            return
+        }
+
+        val userDoc = Firebase.firestore.collection("users").document(userId)
+
+        Handler(Looper.getMainLooper()).postDelayed({
+
+            userDoc.get().addOnCompleteListener { task ->
+                if (task.isSuccessful && task.result != null) {
+                    val currentCart = task.result.get("cartItems") as? Map<String, Long> ?: emptyMap()
+                    val address = task.result.getString("address") ?: ""
+
+
+                    if (currentCart.isEmpty()) {
+                        onFailure("Cart is empty")
+                        return@addOnCompleteListener
+                    }
+
+
+                    val order = OrderModel(
+                        id = "ORD_" + UUID.randomUUID().toString().replace("-", "").take(10).uppercase(),
+                        userId = userId,
+                        date = Timestamp.now(),
+                        items = currentCart,
+                        status = "ORDERED",
+                        address = address
+                    )
+
+                    val firestore = Firebase.firestore
+                    val batch = firestore.batch()
+
+                    val orderRef = firestore.collection("orders").document(order.id)
+                    batch.set(orderRef, order)
+
+                    batch.update(userDoc, "cartItems", emptyMap<String, Long>())
+
+                    batch.commit()
+                        .addOnSuccessListener {
+                            showToast(context, "Payment Successful!")
+                            onSuccess()
+                        }
+                        .addOnFailureListener { e ->
+                            showToast(context, "Order failed: ${e.message}")
+                            onFailure(e.message ?: "Unknown error")
+                        }
+                } else {
+                    onFailure("Failed to get user data")
+                }
+            }
+        }, 2000)
     }
 
-    fun getTaxPercentage(): Float {
-        return 20.0f
-    }
+    fun getDiscountPercentage(): Float = 10.0f
+    fun getTaxPercentage(): Float = 20.0f
 }

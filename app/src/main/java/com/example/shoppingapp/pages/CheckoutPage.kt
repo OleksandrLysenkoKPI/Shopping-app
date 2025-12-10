@@ -1,6 +1,7 @@
 package com.example.shoppingapp.pages
 
 import android.R.attr.fontWeight
+import android.R.attr.strokeWidth
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,7 +10,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -17,11 +22,13 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.shoppingapp.AppUtil
+import com.example.shoppingapp.GlobalNavigation
 import com.example.shoppingapp.model.ProductModel
 import com.example.shoppingapp.model.UserModel
 import com.google.firebase.Firebase
@@ -30,33 +37,19 @@ import com.google.firebase.firestore.firestore
 
 @Composable
 fun CheckoutPage(modifier: Modifier = Modifier) {
-    val userModel = remember {
-        mutableStateOf(UserModel())
-    }
+    val userModel = remember { mutableStateOf(UserModel()) }
+    val productList = remember { mutableStateListOf<ProductModel>() }
 
-    val productList = remember {
-        mutableStateListOf<ProductModel>()
-    }
+    val subTotal = remember { mutableStateOf(0f) }
+    val discount = remember { mutableStateOf(0f) }
+    val tax = remember { mutableStateOf(0f) }
+    val total = remember { mutableStateOf(0f) }
 
-    val subTotal = remember {
-        mutableStateOf(0f)
-    }
-
-    val discount = remember {
-        mutableStateOf(0f)
-    }
-
-    val tax = remember {
-        mutableStateOf(0f)
-    }
-
-    val total = remember {
-        mutableStateOf(0f)
-    }
+    val context = LocalContext.current
+    val isLoading = remember { mutableStateOf(false) }
 
     fun calculateAndAssign() {
         subTotal.value = 0f
-
         productList.forEach { product ->
             val qty = userModel.value.cartItems[product.id] ?: 0
             val price = product.actualPrice.toFloatOrNull() ?: 0f
@@ -77,16 +70,21 @@ fun CheckoutPage(modifier: Modifier = Modifier) {
                     if (result != null) {
                         userModel.value = result
 
-                        Firebase.firestore.collection("data")
-                            .document("stock").collection("products")
-                            .whereIn("id", userModel.value.cartItems.keys.toList())
-                            .get().addOnCompleteListener { task ->
-                                if (task.isSuccessful) {
-                                    val resultProducts = task.result.toObjects(ProductModel::class.java)
-                                    productList.addAll(resultProducts)
-                                    calculateAndAssign()
+                        if (userModel.value.cartItems.isNotEmpty()) {
+                            Firebase.firestore.collection("data")
+                                .document("stock").collection("products")
+                                .whereIn("id", userModel.value.cartItems.keys.toList())
+                                .get().addOnCompleteListener { task ->
+                                    if (task.isSuccessful) {
+                                        val resultProducts =
+                                            task.result.toObjects(ProductModel::class.java)
+                                        productList.addAll(resultProducts)
+                                        calculateAndAssign()
+                                    }
                                 }
-                            }
+                        } else {
+                            calculateAndAssign()
+                        }
                     }
                 }
             }
@@ -131,6 +129,44 @@ fun CheckoutPage(modifier: Modifier = Modifier) {
             textAlign = TextAlign.Center
         )
 
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(onClick = {
+            if (!isLoading.value) {
+                isLoading.value = true
+
+                AppUtil.clearCartAndAddToOrders(
+                    context = context,
+                    onSuccess = {
+                        isLoading.value = false
+                        GlobalNavigation.navController.navigate("home") {
+                            popUpTo("home") { inclusive = true }
+                        }
+                    },
+                    onFailure = { error ->
+                        isLoading.value = false
+                    }
+                )
+            }
+        },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp),
+            enabled = !isLoading.value
+        ) {
+            if (isLoading.value) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    strokeWidth = 3.dp
+                )
+            } else {
+                Text(
+                    text = "Pay Now",
+                    fontSize = 16.sp
+                )
+            }
+        }
     }
 }
 
