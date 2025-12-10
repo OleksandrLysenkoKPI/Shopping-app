@@ -1,5 +1,6 @@
 package com.example.shoppingapp.pages
 
+import android.R.attr.fontWeight
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -7,6 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,17 +30,21 @@ fun CartPage(modifier: Modifier = Modifier) {
         mutableStateOf(UserModel())
     }
 
-    LaunchedEffect(Unit) {
-        Firebase.firestore.collection("users")
+    DisposableEffect (Unit) {
+        var listener = Firebase.firestore.collection("users")
             .document(FirebaseAuth.getInstance().currentUser?.uid!!)
-            .get().addOnCompleteListener {
-                if (it.isSuccessful){
-                    val result = it.result.toObject(UserModel::class.java)
+            .addSnapshotListener { it, _ ->
+                if (it != null){
+                    val result = it.toObject(UserModel::class.java)
                     if (result != null) {
                         userModel.value = result
                     }
                 }
             }
+
+        onDispose {
+            listener.remove()
+        }
     }
 
     Column(
@@ -54,9 +60,21 @@ fun CartPage(modifier: Modifier = Modifier) {
             )
         )
 
-        LazyColumn {
-            items(userModel.value.cartItems.toList()){ (productId, qty) ->
-                CartItemView(productId = productId, qty = qty)
+        LazyColumn(modifier = Modifier.weight(1f)) {
+            if (userModel.value.cartItems.isNotEmpty()) {
+                items(userModel.value.cartItems.toList(), key = { it.first}){ (productId, qty) ->
+                    CartItemView(productId = productId, qty = qty)
+                }
+            } else {
+                item {
+                    Text(
+                        text = "Your cart is empty",
+                        style = TextStyle(
+                            fontWeight = FontWeight.SemiBold
+                        ),
+                        modifier = Modifier.padding(top = 16.dp)
+                    )
+                }
             }
         }
 
