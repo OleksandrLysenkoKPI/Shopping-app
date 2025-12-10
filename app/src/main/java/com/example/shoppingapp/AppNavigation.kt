@@ -2,6 +2,9 @@ package com.example.shoppingapp
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -20,35 +23,58 @@ fun AppNavigation(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
     GlobalNavigation.navController = navController
 
-    val isLoggedIn = Firebase.auth.currentUser != null
-    val firstPage = if(isLoggedIn) "home" else "auth"
+    val firebaseAuth = Firebase.auth
+    val currentUser = firebaseAuth.currentUser
 
-    NavHost(navController = navController, startDestination = firstPage) {
+    val authCheckCompleted = remember { mutableStateOf(false) }
+    val startDestination = remember { mutableStateOf("auth") }
 
-        composable("auth"){
-            AuthScreen(modifier, navController)
+    LaunchedEffect(currentUser) {
+        if (currentUser != null) {
+            currentUser.getIdToken(false)
+                .addOnCompleteListener { task ->
+                    if ( task.isSuccessful) {
+                        startDestination.value = "home"
+                    } else {
+                        firebaseAuth.signOut()
+                        startDestination.value = "auth"
+                    }
+                    authCheckCompleted.value = true
+                }
+        } else {
+            startDestination.value = "auth"
+            authCheckCompleted.value = true
         }
+    }
 
-        composable("login"){
-            LoginScreen(modifier, navController)
-        }
+    if (authCheckCompleted.value) {
+        NavHost(navController = navController, startDestination = startDestination.value) {
 
-        composable("signup"){
-            SignupScreen(modifier, navController)
-        }
+            composable("auth"){
+                AuthScreen(modifier, navController)
+            }
 
-        composable("home"){
-            HomeScreen(modifier, navController)
-        }
+            composable("login"){
+                LoginScreen(modifier, navController)
+            }
 
-        composable("category-products/{categoryId}"){
-            var categoryId = it.arguments?.getString("categoryId")
-            CategoryProductsPage(modifier, categoryId?:"")
-        }
+            composable("signup"){
+                SignupScreen(modifier, navController)
+            }
 
-        composable("product-details/{productId}"){
-            var productId = it.arguments?.getString("productId")
-            ProductsDetailsPage(modifier, productId?:"")
+            composable("home"){
+                HomeScreen(modifier, navController)
+            }
+
+            composable("category-products/{categoryId}"){
+                var categoryId = it.arguments?.getString("categoryId")
+                CategoryProductsPage(modifier, categoryId?:"")
+            }
+
+            composable("product-details/{productId}"){
+                var productId = it.arguments?.getString("productId")
+                ProductsDetailsPage(modifier, productId?:"")
+            }
         }
     }
 }
