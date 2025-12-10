@@ -11,6 +11,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.shoppingapp.pages.CategoryProductsPage
 import com.example.shoppingapp.pages.CheckoutPage
+import com.example.shoppingapp.pages.OrdersPage
 import com.example.shoppingapp.pages.ProductsDetailsPage
 import com.example.shoppingapp.screens.AuthScreen
 import com.example.shoppingapp.screens.HomeScreen
@@ -79,6 +80,10 @@ fun AppNavigation(modifier: Modifier = Modifier) {
 
             composable("checkout"){
                 CheckoutPage(modifier)
+            }
+
+            composable("orders"){
+                OrdersPage(modifier)
             }
         }
     }
