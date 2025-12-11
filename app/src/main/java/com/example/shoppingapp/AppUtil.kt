@@ -11,6 +11,8 @@ import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.firestore
+import java.text.SimpleDateFormat
+import java.util.Locale
 import java.util.UUID
 
 object AppUtil {
@@ -136,4 +138,9 @@ object AppUtil {
 
     fun getDiscountPercentage(): Float = 10.0f
     fun getTaxPercentage(): Float = 20.0f
+
+    fun formatDate(timestamp: Timestamp): String {
+        val sdf = SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault())
+        return sdf.format(timestamp.toDate().time)
+    }
 }

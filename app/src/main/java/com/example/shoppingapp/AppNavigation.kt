@@ -11,6 +11,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.shoppingapp.pages.CategoryProductsPage
 import com.example.shoppingapp.pages.CheckoutPage
+import com.example.shoppingapp.pages.OrderDetailPage
 import com.example.shoppingapp.pages.OrdersPage
 import com.example.shoppingapp.pages.ProductsDetailsPage
 import com.example.shoppingapp.screens.AuthScreen
@@ -84,6 +85,11 @@ fun AppNavigation(modifier: Modifier = Modifier) {
 
             composable("orders"){
                 OrdersPage(modifier)
+            }
+
+            composable("order-details/{orderId}"){
+                val orderId = it.arguments?.getString("orderId")
+                OrderDetailPage(orderId = orderId ?: "")
             }
         }
     }
