@@ -4,7 +4,7 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
-import androidx.compose.ui.text.toUpperCase
+import androidx.core.content.edit
 import com.example.shoppingapp.model.OrderModel
 import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
@@ -143,4 +143,36 @@ object AppUtil {
         val sdf = SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault())
         return sdf.format(timestamp.toDate().time)
     }
+
+
+    private const val PREF_NAME = "favourite_pref"
+    private const val KEY_FAVOURITES = "favourite_list"
+
+    fun addOrRemoveFromFavourite(context: Context, productId: String) {
+        val list = getFavouriteList(context).toMutableSet()
+        if (list.contains(productId)) {
+            list.remove(productId)
+            showToast(context, "Item removed from favourite")
+        } else {
+            list.add(productId)
+            showToast(context, "Item added to favourite")
+        }
+
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+
+        prefs.edit {
+            putStringSet(KEY_FAVOURITES, list)
+        }
+    }
+
+    fun checkFavourite(context: Context, productId: String): Boolean {
+        return getFavouriteList(context).contains(productId)
+    }
+
+    fun getFavouriteList(context: Context): Set<String> {
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        return prefs.getStringSet(KEY_FAVOURITES, emptySet()) ?: emptySet()
+    }
+
+
 }

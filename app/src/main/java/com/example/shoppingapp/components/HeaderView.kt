@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import com.example.shoppingapp.GlobalNavigation
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.firestore
@@ -51,7 +52,9 @@ fun HeaderView(modifier: Modifier = Modifier) {
                 fontWeight = FontWeight.Bold
             ))
         }
-        IconButton(onClick = { }) {
+        IconButton(onClick = {
+            GlobalNavigation.navController.navigate("search")
+        }) {
             Icon(imageVector = Icons.Default.Search, contentDescription = "Search")
         }
     }

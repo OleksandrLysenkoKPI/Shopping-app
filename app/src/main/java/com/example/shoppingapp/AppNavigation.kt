@@ -14,6 +14,7 @@ import com.example.shoppingapp.pages.CheckoutPage
 import com.example.shoppingapp.pages.OrderDetailPage
 import com.example.shoppingapp.pages.OrdersPage
 import com.example.shoppingapp.pages.ProductsDetailsPage
+import com.example.shoppingapp.pages.SearchPage
 import com.example.shoppingapp.screens.AuthScreen
 import com.example.shoppingapp.screens.HomeScreen
 import com.example.shoppingapp.screens.LoginScreen
@@ -90,6 +91,10 @@ fun AppNavigation(modifier: Modifier = Modifier) {
             composable("order-details/{orderId}"){
                 val orderId = it.arguments?.getString("orderId")
                 OrderDetailPage(orderId = orderId ?: "")
+            }
+
+            composable("search") {
+                SearchPage(modifier)
             }
         }
     }

@@ -46,6 +46,10 @@ import com.tbuonomo.viewpagerdotsindicator.compose.DotsIndicator
 import com.tbuonomo.viewpagerdotsindicator.compose.model.DotGraphic
 import com.tbuonomo.viewpagerdotsindicator.compose.type.ShiftIndicatorType
 import android.content.Context
+import android.util.Log.e
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.runtime.MutableState
+import androidx.compose.ui.graphics.Color
 
 @Composable
 fun ProductsDetailsPage(modifier: Modifier = Modifier, productId: String) {
@@ -54,6 +58,8 @@ fun ProductsDetailsPage(modifier: Modifier = Modifier, productId: String) {
     }
 
     var context = LocalContext.current
+
+    var isFav = remember { mutableStateOf(AppUtil.checkFavourite(context, productId)) }
 
     LaunchedEffect(Unit) {
         Firebase.firestore.collection("data"). document("stock")
@@ -90,7 +96,7 @@ fun ProductsDetailsPage(modifier: Modifier = Modifier, productId: String) {
 
         Spacer(Modifier.height(24.dp))
 
-        ProductPriceViewer(product, context)
+        ProductPriceViewer(product, context, isFav)
 
         Spacer(Modifier.height(16.dp))
 
@@ -148,7 +154,7 @@ fun ProductImageViewer(product: ProductModel) {
 }
 
 @Composable
-fun ProductPriceViewer(product: ProductModel, context: Context) {
+fun ProductPriceViewer(product: ProductModel, context: Context, isFav: MutableState<Boolean>) {
     // Old price (if present)
     if (product.actualPrice != product.price) {
         Text(
@@ -176,10 +182,14 @@ fun ProductPriceViewer(product: ProductModel, context: Context) {
         Spacer(modifier = Modifier.weight(1f))
 
         IconButton(onClick = {
-            // TODO
+            AppUtil.addOrRemoveFromFavourite(context, product.id)
+            isFav.value = AppUtil.checkFavourite(context, product.id)
         }) {
             Icon(
-                imageVector = Icons.Default.FavoriteBorder,
+                imageVector =
+                    if(isFav.value) Icons.Default.Favorite
+                    else Icons.Default.FavoriteBorder,
+                tint = if(isFav.value) Color.Red else Color.Gray,
                 contentDescription = "Add to Favourite",
                 modifier = Modifier.size(32.dp)
             )
